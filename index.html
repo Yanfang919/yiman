@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>爱情拼图：我们的回忆</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>爱心酷跑：嫚嫚的冒险</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
@@ -16,6 +16,11 @@
               light: '#FFD7E5',
               DEFAULT: '#FF6B9B',
               dark: '#FF1493'
+            },
+            game: {
+              ground: '#A0522D',
+              obstacle: '#8B4513',
+              powerup: '#FFD700'
             }
           },
           fontFamily: {
@@ -31,13 +36,17 @@
       .content-auto {
         content-visibility: auto;
       }
-      .puzzle-piece {
-        transition: transform 0.3s ease;
-        will-change: transform;
+      .player-jump {
+        animation: jump 0.5s ease-out forwards;
       }
-      .puzzle-piece:hover:not(.empty-piece) {
-        transform: scale(1.05);
-        z-index: 10;
+      .player-slide {
+        animation: slide 0.5s ease-out forwards;
+      }
+      .obstacle-move {
+        animation: moveObstacle linear forwards;
+      }
+      .powerup-move {
+        animation: movePowerup linear forwards;
       }
       .heart-beat {
         animation: heartBeat 1s infinite alternate;
@@ -45,9 +54,28 @@
       .celebration {
         animation: celebration 1s ease-out;
       }
-      .success {
-        animation: success 0.5s ease-out;
-      }
+    }
+    
+    @keyframes jump {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-100px); }
+      100% { transform: translateY(0); }
+    }
+    
+    @keyframes slide {
+      0% { transform: translateY(0) scaleY(1); }
+      50% { transform: translateY(20px) scaleY(0.7); }
+      100% { transform: translateY(0) scaleY(1); }
+    }
+    
+    @keyframes moveObstacle {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-100px); }
+    }
+    
+    @keyframes movePowerup {
+      0% { transform: translateX(100vw) translateY(-50px); }
+      100% { transform: translateX(-100px) translateY(-50px); }
     }
     
     @keyframes heartBeat {
@@ -59,12 +87,6 @@
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.2); opacity: 0.8; }
       100% { transform: scale(1); opacity: 1; }
-    }
-    
-    @keyframes success {
-      0% { background-color: #fff; }
-      50% { background-color: #8BC34A; }
-      100% { background-color: #fff; }
     }
     
     /* 背景爱心效果 */
@@ -113,6 +135,96 @@
         opacity: 0;
       }
     }
+    
+    /* 游戏元素 */
+    #game-canvas {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+    }
+    
+    #player {
+      position: absolute;
+      bottom: 50px;
+      left: 50px;
+      width: 60px;
+      height: 80px;
+      background-image: url('https://picsum.photos/seed/player/60/80');
+      background-size: cover;
+      z-index: 10;
+      transition: transform 0.1s;
+    }
+    
+    .obstacle {
+      position: absolute;
+      bottom: 50px;
+      width: 40px;
+      height: 60px;
+      background-color: #8B4513;
+      border-radius: 5px;
+      z-index: 5;
+    }
+    
+    .powerup {
+      position: absolute;
+      bottom: 100px;
+      width: 30px;
+      height: 30px;
+      background-color: #FFD700;
+      border-radius: 50%;
+      z-index: 5;
+      animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background-color: #A0522D;
+      z-index: 1;
+    }
+    
+    .cloud {
+      position: absolute;
+      top: 50px;
+      width: 100px;
+      height: 60px;
+      background-image: url('https://picsum.photos/seed/cloud/100/60');
+      background-size: cover;
+      z-index: 2;
+    }
+    
+    /* 移动设备控制按钮 */
+    .control-btn {
+      position: absolute;
+      bottom: 20px;
+      width: 80px;
+      height: 80px;
+      background-color: rgba(255, 107, 155, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      z-index: 20;
+      touch-action: manipulation;
+    }
+    
+    #jump-btn {
+      right: 20px;
+    }
+    
+    #slide-btn {
+      left: 20px;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-love-light to-white min-h-screen font-love overflow-x-hidden">
@@ -126,28 +238,11 @@
     <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-30">
       <div class="text-center p-8 rounded-2xl bg-white shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 hover:shadow-love/30">
         <h1 class="text-[clamp(2.5rem,8vw,4rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-love-dark to-love heart-beat mb-6">
-          爱情拼图：<br>我们的回忆
+          爱心酷跑：<br>我们的冒险
         </h1>
         <p class="text-gray-600 text-lg mb-8">
-          挑战你的拼图技巧！将打乱的碎片重新组合，还原我们的美好回忆。
+          躲避障碍物，收集爱心，挑战最高分！
         </p>
-        
-        <!-- 难度选择 -->
-        <div class="border-2 border-dashed border-love rounded-lg p-4 mb-6">
-          <h3 class="text-xl font-semibold text-love-dark mb-4">选择难度</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <button class="difficulty-btn bg-love text-white py-2 px-4 rounded-lg shadow-md" data-size="3">
-              简单 (3×3)
-            </button>
-            <button class="difficulty-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-love hover:text-white transition-colors" data-size="4">
-              中等 (4×4)
-            </button>
-            <button class="difficulty-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-love hover:text-white transition-colors" data-size="5">
-              困难 (5×5)
-            </button>
-          </div>
-        </div>
-        
         <div class="flex flex-col space-y-4">
           <button id="start-game-btn" class="bg-gradient-to-r from-love-dark to-love text-white py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
             开始游戏 <i class="fa fa-heart ml-2"></i>
@@ -166,19 +261,23 @@
         <ul class="space-y-3 text-gray-700 mb-6">
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>点击与空白方块相邻的拼图块进行移动</span>
+            <span>使用空格键或上箭头键跳跃</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>目标是将所有拼图块按正确顺序排列</span>
+            <span>使用下箭头键滑行</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>难度越高，拼图块越多，挑战越大</span>
+            <span>躲避障碍物，不要被撞到</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>完成拼图用时越短，你的记忆力越好</span>
+            <span>收集黄色爱心以获得额外分数</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-heart text-love mt-1 mr-3"></i>
+            <span>游戏会逐渐加速，挑战你的反应能力</span>
           </li>
         </ul>
         <button id="close-rules-btn" class="w-full bg-gradient-to-r from-love-dark to-love text-white py-3 px-6 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
@@ -190,46 +289,46 @@
     <!-- 游戏界面 -->
     <div id="game-screen" class="absolute inset-0 hidden flex flex-col items-center justify-center">
       <!-- 游戏信息 -->
-      <div class="w-full max-w-5xl flex justify-between items-center mb-6 px-4">
+      <div class="w-full max-w-5xl flex justify-between items-center mb-2 px-4 pt-4">
         <div class="flex items-center">
           <div class="w-6 h-6 rounded-full bg-love mr-3 heart-beat"></div>
           <div>
-            <div class="font-bold">移动次数</div>
-            <div class="text-sm"><span id="moves">0</span></div>
+            <div class="font-bold">分数</div>
+            <div class="text-sm"><span id="score">0</span></div>
           </div>
         </div>
         
         <div class="text-center">
-          <div class="text-lg font-bold" id="game-status">开始拼图</div>
-          <div class="text-sm" id="timer">00:00</div>
-          <div class="text-xs text-gray-500 mt-1" id="difficulty-display">难度: 简单 (3×3)</div>
+          <div class="text-lg font-bold" id="game-status">开始奔跑！</div>
         </div>
         
         <div class="flex items-center">
           <div>
-            <div class="font-bold text-right">最佳记录</div>
-            <div class="text-sm text-right"><span id="best-time">--:--</span></div>
+            <div class="font-bold text-right">最高分</div>
+            <div class="text-sm text-right"><span id="high-score">0</span></div>
           </div>
           <div class="w-6 h-6 rounded-full bg-love ml-3"></div>
         </div>
       </div>
       
-      <!-- 拼图容器 -->
-      <div id="puzzle-container" class="relative max-w-3xl w-full mx-4 bg-white p-2 rounded-xl shadow-xl">
-        <!-- 拼图网格将通过JavaScript动态生成 -->
-        <div id="puzzle-grid" class="grid gap-1"></div>
+      <!-- 游戏画布 -->
+      <div id="game-canvas" class="w-full max-w-4xl aspect-[4/3] rounded-xl shadow-xl overflow-hidden relative">
+        <div id="player"></div>
+        <div id="ground"></div>
         
-        <!-- 原图预览 -->
-        <div class="absolute top-2 right-2 bg-white/80 backdrop-blur-sm p-2 rounded-lg shadow-md">
-          <div class="text-xs text-gray-600 mb-1">原图</div>
-          <img id="preview-image" src="" alt="原图预览" class="w-20 h-20 object-cover rounded-md">
+        <!-- 移动设备控制按钮 -->
+        <div id="slide-btn" class="control-btn md:hidden">
+          <i class="fa fa-chevron-down"></i>
+        </div>
+        <div id="jump-btn" class="control-btn md:hidden">
+          <i class="fa fa-chevron-up"></i>
         </div>
       </div>
       
       <!-- 游戏控制 -->
-      <div class="mt-8 flex space-x-4">
-        <button id="restart-game-btn" class="bg-gray-200 text-gray-700 py-3 px-6 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
-          重新开始 <i class="fa fa-refresh ml-2"></i>
+      <div class="mt-4 flex space-x-4">
+        <button id="pause-game-btn" class="bg-gray-200 text-gray-700 py-3 px-6 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+          暂停 <i class="fa fa-pause ml-2"></i>
         </button>
         <button id="quit-game-btn" class="bg-love text-white py-3 px-6 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
           退出游戏 <i class="fa fa-sign-out ml-2"></i>
@@ -240,24 +339,39 @@
     <!-- 游戏结束界面 -->
     <div id="game-over-screen" class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-40 hidden">
       <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center transform transition-all duration-500">
-        <h2 class="text-3xl font-bold text-love-dark mb-4">恭喜完成！</h2>
+        <h2 class="text-3xl font-bold text-love-dark mb-4">游戏结束！</h2>
         <p class="text-lg mb-2">你的成绩</p>
         <div class="grid grid-cols-2 gap-6 mb-6">
           <div class="bg-love-light rounded-lg p-4">
-            <div class="font-bold text-love-dark">用时</div>
-            <div class="text-2xl font-bold" id="final-time">00:00</div>
+            <div class="font-bold text-love-dark">得分</div>
+            <div class="text-2xl font-bold" id="final-score">0</div>
           </div>
           <div class="bg-love-light rounded-lg p-4">
-            <div class="font-bold text-love-dark">移动次数</div>
-            <div class="text-2xl font-bold" id="final-moves">0</div>
+            <div class="font-bold text-love-dark">最高分</div>
+            <div class="text-2xl font-bold" id="final-high-score">0</div>
           </div>
         </div>
         <p class="text-xl font-bold mb-6 text-love-dark">
-          太棒了，你成功完成了拼图！
+          继续挑战，创造新纪录！
         </p>
         <button id="play-again-btn" class="bg-gradient-to-r from-love-dark to-love text-white py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
           再玩一次 <i class="fa fa-heart ml-2"></i>
         </button>
+      </div>
+    </div>
+    
+    <!-- 暂停界面 -->
+    <div id="pause-screen" class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-40 hidden">
+      <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center transform transition-all duration-500">
+        <h2 class="text-3xl font-bold text-love-dark mb-6">游戏暂停</h2>
+        <div class="flex flex-col space-y-4">
+          <button id="resume-game-btn" class="bg-gradient-to-r from-love-dark to-love text-white py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
+            继续游戏 <i class="fa fa-play ml-2"></i>
+          </button>
+          <button id="restart-game-btn" class="bg-gray-200 text-gray-700 py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
+            重新开始 <i class="fa fa-refresh ml-2"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -265,22 +379,50 @@
   <script>
     // 游戏配置
     const config = {
-      puzzleSize: 3, // 默认3x3
-      // 默认示例图片，可替换为你们的照片
-      defaultImage: 'https://picsum.photos/seed/couple/800/800',
-      localStorageKey: 'puzzle_best_time'
+      player: {
+        width: 60,
+        height: 80,
+        jumpStrength: 100,
+        slideDuration: 500
+      },
+      obstacles: {
+        minWidth: 30,
+        maxWidth: 60,
+        minHeight: 40,
+        maxHeight: 80,
+        minGap: 300,
+        maxGap: 800,
+        minSpeed: 5,
+        maxSpeed: 15,
+        speedIncrease: 0.01 // 每帧增加的速度
+      },
+      powerups: {
+        width: 30,
+        height: 30,
+        spawnChance: 0.05,
+        pointValue: 10
+      },
+      localStorageKey: 'runner_high_score'
     };
     
     // 游戏状态
     const gameState = {
-      moves: 0,
-      startTime: null,
-      timerInterval: null,
-      puzzle: [],
-      emptyPosition: { row: 0, col: 0 },
+      score: 0,
+      highScore: localStorage.getItem(config.localStorageKey) || 0,
+      speed: config.obstacles.minSpeed,
+      isJumping: false,
+      isSliding: false,
       gameOver: false,
-      solved: false,
-      bestTime: localStorage.getItem(config.localStorageKey) || '--:--'
+      paused: false,
+      animationId: null,
+      lastObstacleX: 0,
+      lastPowerupX: 0,
+      lastTimestamp: 0,
+      ground: document.getElementById('ground'),
+      player: document.getElementById('player'),
+      canvas: document.getElementById('game-canvas'),
+      obstacles: [],
+      powerups: []
     };
     
     // DOM元素
@@ -288,22 +430,22 @@
     const rulesScreen = document.getElementById('rules-screen');
     const gameScreen = document.getElementById('game-screen');
     const gameOverScreen = document.getElementById('game-over-screen');
+    const pauseScreen = document.getElementById('pause-screen');
     const startGameBtn = document.getElementById('start-game-btn');
     const howToPlayBtn = document.getElementById('how-to-play-btn');
     const closeRulesBtn = document.getElementById('close-rules-btn');
-    const restartGameBtn = document.getElementById('restart-game-btn');
+    const pauseGameBtn = document.getElementById('pause-game-btn');
     const quitGameBtn = document.getElementById('quit-game-btn');
     const playAgainBtn = document.getElementById('play-again-btn');
-    const puzzleGrid = document.getElementById('puzzle-grid');
-    const previewImage = document.getElementById('preview-image');
-    const moves = document.getElementById('moves');
-    const timer = document.getElementById('timer');
+    const resumeGameBtn = document.getElementById('resume-game-btn');
+    const restartGameBtn = document.getElementById('restart-game-btn');
+    const scoreDisplay = document.getElementById('score');
+    const highScoreDisplay = document.getElementById('high-score');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const finalHighScoreDisplay = document.getElementById('final-high-score');
     const gameStatus = document.getElementById('game-status');
-    const bestTime = document.getElementById('best-time');
-    const finalTime = document.getElementById('final-time');
-    const finalMoves = document.getElementById('final-moves');
-    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
-    const difficultyDisplay = document.getElementById('difficulty-display');
+    const jumpBtn = document.getElementById('jump-btn');
+    const slideBtn = document.getElementById('slide-btn');
     const heartBgContainer = document.getElementById('heart-bg-container');
     
     // 初始化事件监听
@@ -311,27 +453,21 @@
       startGameBtn.addEventListener('click', startGame);
       howToPlayBtn.addEventListener('click', showRules);
       closeRulesBtn.addEventListener('click', hideRules);
-      restartGameBtn.addEventListener('click', restartGame);
+      pauseGameBtn.addEventListener('click', pauseGame);
       quitGameBtn.addEventListener('click', quitGame);
       playAgainBtn.addEventListener('click', playAgain);
+      resumeGameBtn.addEventListener('click', resumeGame);
+      restartGameBtn.addEventListener('click', restartGame);
       
-      // 难度选择
-      difficultyBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          // 移除所有按钮的选中状态
-          difficultyBtns.forEach(b => {
-            b.classList.remove('bg-love', 'text-white', 'shadow-md');
-            b.classList.add('bg-gray-200', 'text-gray-700');
-          });
-          
-          // 设置当前按钮为选中状态
-          btn.classList.remove('bg-gray-200', 'text-gray-700');
-          btn.classList.add('bg-love', 'text-white', 'shadow-md');
-          
-          // 更新配置
-          config.puzzleSize = parseInt(btn.dataset.size);
-        });
-      });
+      // 键盘控制
+      document.addEventListener('keydown', handleKeydown);
+      
+      // 移动设备控制
+      jumpBtn.addEventListener('touchstart', () => jump());
+      slideBtn.addEventListener('touchstart', () => slide());
+      
+      // 响应式调整
+      window.addEventListener('resize', adjustGameCanvas);
     }
     
     // 显示规则
@@ -349,283 +485,345 @@
       welcomeScreen.classList.add('hidden');
       gameScreen.classList.remove('hidden');
       
-      // 更新难度显示
-      let difficultyText;
-      if (config.puzzleSize === 3) {
-        difficultyText = '简单 (3×3)';
-      } else if (config.puzzleSize === 4) {
-        difficultyText = '中等 (4×4)';
-      } else if (config.puzzleSize === 5) {
-        difficultyText = '困难 (5×5)';
-      }
-      difficultyDisplay.textContent = `难度: ${difficultyText}`;
-      
       // 初始化游戏状态
-      gameState.moves = 0;
-      gameState.startTime = new Date();
-      gameState.timerInterval = setInterval(updateTimer, 1000);
+      gameState.score = 0;
+      gameState.speed = config.obstacles.minSpeed;
+      gameState.isJumping = false;
+      gameState.isSliding = false;
       gameState.gameOver = false;
-      gameState.solved = false;
+      gameState.paused = false;
+      gameState.obstacles = [];
+      gameState.powerups = [];
+      
+      // 清空游戏区域
+      const obstacles = document.querySelectorAll('.obstacle');
+      const powerups = document.querySelectorAll('.powerup');
+      obstacles.forEach(obstacle => obstacle.remove());
+      powerups.forEach(powerup => powerup.remove());
       
       // 更新UI
-      moves.textContent = gameState.moves;
-      timer.textContent = '00:00';
-      gameStatus.textContent = '开始拼图';
-      bestTime.textContent = gameState.bestTime;
+      scoreDisplay.textContent = gameState.score;
+      highScoreDisplay.textContent = gameState.highScore;
+      gameStatus.textContent = '开始奔跑！';
       
-      // 设置预览图片
-      previewImage.src = config.defaultImage;
+      // 重置玩家位置
+      gameState.player.style.bottom = '50px';
+      gameState.player.style.left = '50px';
+      gameState.player.style.transform = 'scaleY(1)';
       
-      // 创建拼图
-      createPuzzle();
+      // 调整游戏画布
+      adjustGameCanvas();
+      
+      // 开始游戏循环
+      gameState.lastTimestamp = performance.now();
+      gameLoop(gameState.lastTimestamp);
       
       // 开始背景爱心动画
       startHeartBackground();
     }
     
-    // 创建拼图
-    function createPuzzle() {
-      // 清空拼图网格
-      puzzleGrid.innerHTML = '';
+    // 调整游戏画布
+    function adjustGameCanvas() {
+      const canvas = gameState.canvas;
+      const rect = canvas.getBoundingClientRect();
+      gameState.canvasWidth = rect.width;
+      gameState.canvasHeight = rect.height;
+    }
+    
+    // 游戏主循环
+    function gameLoop(timestamp) {
+      if (gameState.gameOver || gameState.paused) return;
       
-      // 设置网格样式
-      puzzleGrid.style.gridTemplateColumns = `repeat(${config.puzzleSize}, 1fr)`;
+      // 计算时间差
+      const deltaTime = timestamp - gameState.lastTimestamp;
+      gameState.lastTimestamp = timestamp;
       
-      // 初始化拼图数组
-      const size = config.puzzleSize * config.puzzleSize;
-      gameState.puzzle = Array.from({ length: size }, (_, i) => i);
+      // 更新游戏状态
+      update(deltaTime);
       
-      // 随机打乱拼图
-      shufflePuzzle();
+      // 渲染游戏
+      render();
       
-      // 创建拼图块
-      for (let i = 0; i < size; i++) {
-        const row = Math.floor(i / config.puzzleSize);
-        const col = i % config.puzzleSize;
-        const value = gameState.puzzle[i];
+      // 继续游戏循环
+      gameState.animationId = requestAnimationFrame(gameLoop);
+    }
+    
+    // 更新游戏状态
+    function update(deltaTime) {
+      // 增加分数
+      gameState.score += Math.floor(gameState.speed / 10);
+      scoreDisplay.textContent = gameState.score;
+      
+      // 加速游戏
+      gameState.speed = Math.min(
+        gameState.speed + config.obstacles.speedIncrease * deltaTime, 
+        config.obstacles.maxSpeed
+      );
+      
+      // 生成障碍物
+      generateObstacles();
+      
+      // 生成能量道具
+      generatePowerups();
+      
+      // 移动障碍物
+      moveObstacles(deltaTime);
+      
+      // 移动能量道具
+      movePowerups(deltaTime);
+      
+      // 检查碰撞
+      checkCollisions();
+    }
+    
+    // 渲染游戏
+    function render() {
+      // 游戏状态更新会直接反映在DOM上
+    }
+    
+    // 生成障碍物
+    function generateObstacles() {
+      if (gameState.obstacles.length === 0 || 
+          gameState.canvasWidth - gameState.lastObstacleX > 
+          config.obstacles.minGap + Math.random() * (config.obstacles.maxGap - config.obstacles.minGap)) {
         
-        // 记录空白块位置
-        if (value === size - 1) {
-          gameState.emptyPosition = { row, col };
-        }
+        const obstacle = document.createElement('div');
+        obstacle.className = 'obstacle obstacle-move';
         
-        // 创建拼图块
-        const piece = document.createElement('div');
-        piece.className = 'puzzle-piece relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300';
-        piece.dataset.value = value;
-        piece.dataset.row = row;
-        piece.dataset.col = col;
+        // 随机障碍物大小
+        const width = config.obstacles.minWidth + Math.random() * (config.obstacles.maxWidth - config.obstacles.minWidth);
+        const height = config.obstacles.minHeight + Math.random() * (config.obstacles.maxHeight - config.obstacles.minHeight);
         
-        // 如果不是空白块，则添加图片
-        if (value !== size - 1) {
-          // 计算背景图片位置
-          const pieceWidth = 100 / (config.puzzleSize - 1);
-          const pieceHeight = 100 / (config.puzzleSize - 1);
-          const bgX = col * pieceWidth;
-          const bgY = row * pieceHeight;
-          
-          piece.style.backgroundImage = `url(${config.defaultImage})`;
-          piece.style.backgroundSize = `${config.puzzleSize * 100}% ${config.puzzleSize * 100}%`;
-          piece.style.backgroundPosition = `${bgX}% ${bgY}%`;
-          
-          // 添加点击事件
-          piece.addEventListener('click', () => movePiece(piece));
-        } else {
-          // 空白块样式
-          piece.classList.add('empty-piece');
-          piece.style.backgroundColor = '#FFD7E5';
-        }
+        obstacle.style.width = `${width}px`;
+        obstacle.style.height = `${height}px`;
+        obstacle.style.bottom = '50px'; // 地面高度
+        obstacle.style.left = `${gameState.canvasWidth}px`;
         
-        // 添加到网格
-        puzzleGrid.appendChild(piece);
+        // 设置动画持续时间
+        const duration = gameState.canvasWidth / gameState.speed / 1000; // 秒
+        obstacle.style.animationDuration = `${duration}s`;
+        
+        // 添加到游戏区域
+        gameState.canvas.appendChild(obstacle);
+        gameState.obstacles.push(obstacle);
+        
+        // 更新最后一个障碍物的位置
+        gameState.lastObstacleX = gameState.canvasWidth;
       }
     }
     
-    // 打乱拼图
-    function shufflePuzzle() {
-      // 简单的随机打乱方法
-      const size = config.puzzleSize * config.puzzleSize;
-      const emptyValue = size - 1;
-      let emptyIndex = size - 1;
-      
-      // 进行一定次数的随机移动以确保可解
-      const shuffleCount = 100 * config.puzzleSize;
-      for (let i = 0; i < shuffleCount; i++) {
-        const possibleMoves = [];
-        const emptyRow = Math.floor(emptyIndex / config.puzzleSize);
-        const emptyCol = emptyIndex % config.puzzleSize;
+    // 生成能量道具
+    function generatePowerups() {
+      if (Math.random() < config.powerups.spawnChance && 
+          (gameState.powerups.length === 0 || 
+           gameState.canvasWidth - gameState.lastPowerupX > 
+           config.obstacles.minGap * 2)) {
         
-        // 检查可以移动到空白位置的方向
-        if (emptyRow > 0) possibleMoves.push(-config.puzzleSize); // 上
-        if (emptyRow < config.puzzleSize - 1) possibleMoves.push(config.puzzleSize); // 下
-        if (emptyCol > 0) possibleMoves.push(-1); // 左
-        if (emptyCol < config.puzzleSize - 1) possibleMoves.push(1); // 右
+        const powerup = document.createElement('div');
+        powerup.className = 'powerup powerup-move';
         
-        // 随机选择一个方向移动
-        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        const moveIndex = emptyIndex + randomMove;
+        powerup.style.width = `${config.powerups.width}px`;
+        powerup.style.height = `${config.powerups.height}px`;
+        powerup.style.bottom = `${50 + 50 + Math.random() * 100}px`; // 地面上方随机高度
+        powerup.style.left = `${gameState.canvasWidth}px`;
         
-        // 交换位置
-        [gameState.puzzle[emptyIndex], gameState.puzzle[moveIndex]] = 
-        [gameState.puzzle[moveIndex], gameState.puzzle[emptyIndex]];
+        // 设置动画持续时间
+        const duration = gameState.canvasWidth / gameState.speed / 1000; // 秒
+        powerup.style.animationDuration = `${duration}s`;
         
-        // 更新空白块位置
-        emptyIndex = moveIndex;
+        // 添加到游戏区域
+        gameState.canvas.appendChild(powerup);
+        gameState.powerups.push(powerup);
+        
+        // 更新最后一个能量道具的位置
+        gameState.lastPowerupX = gameState.canvasWidth;
       }
     }
     
-    // 移动拼图块
-    function movePiece(piece) {
-      if (gameState.gameOver) return;
-      
-      const row = parseInt(piece.dataset.row);
-      const col = parseInt(piece.dataset.col);
-      const emptyRow = gameState.emptyPosition.row;
-      const emptyCol = gameState.emptyPosition.col;
-      
-      // 检查是否可以移动（与空白块相邻）
-      if (
-        (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
-        (col === emptyCol && Math.abs(row - emptyRow) === 1)
-      ) {
-        // 计算移动方向
-        const direction = {
-          row: emptyRow - row,
-          col: emptyCol - col
-        };
+    // 移动障碍物
+    function moveObstacles(deltaTime) {
+      const obstacles = [...gameState.obstacles];
+      obstacles.forEach((obstacle, index) => {
+        const rect = obstacle.getBoundingClientRect();
         
-        // 移动拼图块
-        movePieceAnimation(piece, direction);
-        
-        // 更新游戏状态
-        const pieceIndex = row * config.puzzleSize + col;
-        const emptyIndex = emptyRow * config.puzzleSize + emptyCol;
-        
-        // 交换拼图数组中的值
-        [gameState.puzzle[pieceIndex], gameState.puzzle[emptyIndex]] = 
-        [gameState.puzzle[emptyIndex], gameState.puzzle[pieceIndex]];
-        
-        // 更新空白块位置
-        gameState.emptyPosition = { row, col };
-        
-        // 增加移动次数
-        gameState.moves++;
-        moves.textContent = gameState.moves;
-        
-        // 检查是否完成拼图
-        setTimeout(checkWin, 300);
-      }
-    }
-    
-    // 拼图块移动动画
-    function movePieceAnimation(piece, direction) {
-      // 添加移动动画
-      const moveDistance = 100; // 100% of the piece size
-      const transform = `translate(${direction.col * moveDistance}%, ${direction.row * moveDistance}%)`;
-      
-      piece.style.transform = transform;
-      
-      // 动画结束后重置样式
-      setTimeout(() => {
-        // 交换两个元素的位置
-        const puzzleContainer = puzzleGrid;
-        const emptyPiece = document.querySelector('.empty-piece');
-        
-        // 获取当前拼图块和空白块的索引
-        const pieceIndex = Array.from(puzzleContainer.children).indexOf(piece);
-        const emptyIndex = Array.from(puzzleContainer.children).indexOf(emptyPiece);
-        
-        // 交换位置
-        if (pieceIndex > emptyIndex) {
-          puzzleContainer.insertBefore(piece, emptyPiece);
-        } else {
-          puzzleContainer.insertBefore(emptyPiece, piece.nextSibling);
+        // 移除超出屏幕的障碍物
+        if (rect.right < 0) {
+          obstacle.remove();
+          gameState.obstacles.splice(index, 1);
         }
-        
-        // 重置样式
-        piece.style.transform = 'translate(0, 0)';
-        
-        // 更新data属性
-        piece.dataset.row = gameState.emptyPosition.row;
-        piece.dataset.col = gameState.emptyPosition.col;
-        
-        // 更新空白块的data属性
-        emptyPiece.dataset.row = direction.row === 1 ? parseInt(piece.dataset.row) + 1 : parseInt(piece.dataset.row) - 1;
-        emptyPiece.dataset.col = direction.col === 1 ? parseInt(piece.dataset.col) + 1 : parseInt(piece.dataset.col) - 1;
-      }, 300);
+      });
     }
     
-    // 检查是否完成拼图
-    function checkWin() {
-      const size = config.puzzleSize * config.puzzleSize;
-      
-      for (let i = 0; i < size - 1; i++) {
-        if (gameState.puzzle[i] !== i) {
-          return; // 拼图未完成
+    // 移动能量道具
+    function movePowerups(deltaTime) {
+      const powerups = [...gameState.powerups];
+      powerups.forEach((powerup, index) => {
+        const rect = powerup.getBoundingClientRect();
+        
+        // 移除超出屏幕的能量道具
+        if (rect.right < 0) {
+          powerup.remove();
+          gameState.powerups.splice(index, 1);
         }
-      }
+      });
+    }
+    
+    // 检查碰撞
+    function checkCollisions() {
+      const playerRect = gameState.player.getBoundingClientRect();
       
-      // 拼图完成
-      gameState.solved = true;
-      gameState.gameOver = true;
-      clearInterval(gameState.timerInterval);
-      
-      // 显示成功消息
-      gameStatus.textContent = '拼图完成！🎉';
-      
-      // 所有拼图块添加成功动画
-      const pieces = document.querySelectorAll('.puzzle-piece:not(.empty-piece)');
-      pieces.forEach(piece => {
-        piece.classList.add('success');
+      // 检查与障碍物的碰撞
+      gameState.obstacles.forEach(obstacle => {
+        const obstacleRect = obstacle.getBoundingClientRect();
+        
+        // 简化的碰撞检测
+        if (
+          playerRect.right > obstacleRect.left + 10 &&
+          playerRect.left + 10 < obstacleRect.right &&
+          playerRect.bottom > obstacleRect.top + 10 &&
+          playerRect.top + 10 < obstacleRect.bottom
+        ) {
+          gameOver();
+        }
       });
       
-      // 保存最佳记录
-      const elapsedTime = timer.textContent;
-      if (gameState.bestTime === '--:--' || compareTimes(elapsedTime, gameState.bestTime)) {
-        gameState.bestTime = elapsedTime;
-        localStorage.setItem(config.localStorageKey, elapsedTime);
-        bestTime.textContent = gameState.bestTime;
+      // 检查与能量道具的碰撞
+      gameState.powerups.forEach((powerup, index) => {
+        const powerupRect = powerup.getBoundingClientRect();
+        
+        if (
+          playerRect.right > powerupRect.left &&
+          playerRect.left < powerupRect.right &&
+          playerRect.bottom > powerupRect.top &&
+          playerRect.top < powerupRect.bottom
+        ) {
+          // 收集能量道具
+          powerup.remove();
+          gameState.powerups.splice(index, 1);
+          
+          // 增加分数
+          gameState.score += config.powerups.pointValue;
+          scoreDisplay.textContent = gameState.score;
+          
+          // 显示得分动画
+          showScorePopup(config.powerups.pointValue);
+        }
+      });
+    }
+    
+    // 显示得分弹出动画
+    function showScorePopup(points) {
+      const popup = document.createElement('div');
+      popup.className = 'absolute text-love-dark font-bold text-xl';
+      popup.style.left = `${gameState.player.offsetLeft + 30}px`;
+      popup.style.bottom = `${gameState.player.offsetTop + 100}px`;
+      popup.style.zIndex = '15';
+      popup.style.animation = 'celebration 1s ease-out forwards';
+      popup.textContent = `+${points}`;
+      
+      gameState.canvas.appendChild(popup);
+      
+      // 1秒后移除
+      setTimeout(() => {
+        popup.remove();
+      }, 1000);
+    }
+    
+    // 跳跃
+    function jump() {
+      if (gameState.isJumping || gameState.isSliding || gameState.gameOver || gameState.paused) return;
+      
+      gameState.isJumping = true;
+      gameState.player.classList.add('player-jump');
+      
+      // 跳跃动画结束后重置
+      setTimeout(() => {
+        gameState.player.classList.remove('player-jump');
+        gameState.isJumping = false;
+      }, 500);
+    }
+    
+    // 滑行
+    function slide() {
+      if (gameState.isJumping || gameState.isSliding || gameState.gameOver || gameState.paused) return;
+      
+      gameState.isSliding = true;
+      gameState.player.classList.add('player-slide');
+      
+      // 滑行动画结束后重置
+      setTimeout(() => {
+        gameState.player.classList.remove('player-slide');
+        gameState.isSliding = false;
+      }, config.player.slideDuration);
+    }
+    
+    // 键盘控制
+    function handleKeydown(event) {
+      if (gameState.gameOver || gameState.paused) {
+        if (event.code === 'Space' && gameState.gameOver) {
+          playAgain();
+        }
+        return;
       }
+      
+      if (event.code === 'Space' || event.code === 'ArrowUp') {
+        jump();
+      } else if (event.code === 'ArrowDown') {
+        slide();
+      } else if (event.code === 'KeyP') {
+        pauseGame();
+      }
+    }
+    
+    // 游戏结束
+    function gameOver() {
+      gameState.gameOver = true;
+      cancelAnimationFrame(gameState.animationId);
+      
+      // 更新最高分
+      if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        localStorage.setItem(config.localStorageKey, gameState.highScore);
+      }
+      
+      // 更新UI
+      gameStatus.textContent = '游戏结束！';
+      finalScoreDisplay.textContent = gameState.score;
+      finalHighScoreDisplay.textContent = gameState.highScore;
       
       // 显示游戏结束界面
       setTimeout(() => {
-        finalTime.textContent = elapsedTime;
-        finalMoves.textContent = gameState.moves;
         gameOverScreen.classList.remove('hidden');
-      }, 1500);
+      }, 1000);
     }
     
-    // 比较两个时间字符串
-    function compareTimes(time1, time2) {
-      const [minutes1, seconds1] = time1.split(':').map(Number);
-      const [minutes2, seconds2] = time2.split(':').map(Number);
+    // 暂停游戏
+    function pauseGame() {
+      if (gameState.gameOver) return;
       
-      return minutes1 < minutes2 || (minutes1 === minutes2 && seconds1 < seconds2);
+      gameState.paused = true;
+      cancelAnimationFrame(gameState.animationId);
+      pauseScreen.classList.remove('hidden');
     }
     
-    // 更新计时器
-    function updateTimer() {
-      const now = new Date();
-      const elapsed = Math.floor((now - gameState.startTime) / 1000);
-      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-      const seconds = (elapsed % 60).toString().padStart(2, '0');
-      timer.textContent = `${minutes}:${seconds}`;
+    // 继续游戏
+    function resumeGame() {
+      gameState.paused = false;
+      pauseScreen.classList.add('hidden');
+      gameState.lastTimestamp = performance.now();
+      gameLoop(gameState.lastTimestamp);
     }
     
     // 重新开始游戏
     function restartGame() {
-      // 清除计时器
-      clearInterval(gameState.timerInterval);
-      
-      // 重新开始
+      pauseScreen.classList.add('hidden');
       startGame();
     }
     
     // 退出游戏
     function quitGame() {
-      // 清除计时器
-      clearInterval(gameState.timerInterval);
-      
+      gameState.paused = true;
+      cancelAnimationFrame(gameState.animationId);
       gameScreen.classList.add('hidden');
       welcomeScreen.classList.remove('hidden');
       
@@ -636,7 +834,7 @@
     // 再玩一次
     function playAgain() {
       gameOverScreen.classList.add('hidden');
-      restartGame();
+      startGame();
     }
     
     // 创建背景爱心
