@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>记忆拼图：嫚嫚的爱情故事</title>
+  <title>记忆挑战：嫚嫚的专属游戏</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
@@ -54,6 +54,15 @@
       .celebration {
         animation: celebration 1s ease-out;
       }
+      .memory-active {
+        cursor: default;
+      }
+      .success {
+        animation: success 0.5s ease-out;
+      }
+      .error {
+        animation: error 0.5s ease-out;
+      }
     }
     
     @keyframes heartBeat {
@@ -65,6 +74,20 @@
       0% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.2); opacity: 0.8; }
       100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes success {
+      0% { background-color: #fff; }
+      50% { background-color: #8BC34A; }
+      100% { background-color: #fff; }
+    }
+    
+    @keyframes error {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      50% { transform: translateX(10px); }
+      75% { transform: translateX(-10px); }
+      100% { transform: translateX(0); }
     }
     
     /* 背景爱心效果 */
@@ -126,20 +149,20 @@
     <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-30">
       <div class="text-center p-8 rounded-2xl bg-white shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 hover:shadow-love/30">
         <h1 class="text-[clamp(2.5rem,8vw,4rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-love-dark to-love heart-beat mb-6">
-          记忆拼图：<br>小仪嫚的爱情故事
+          记忆挑战：<br>嫚嫚的专属游戏
         </h1>
         <p class="text-gray-600 text-lg mb-8">
-          亲爱的嫚嫚，这是专属你的记忆拼图游戏！<br>测试你们的默契，找出配对的图片。
+          测试你的记忆力！记住所有卡片的位置和内容，然后按顺序点击它们。
         </p>
         
         <!-- 难度选择 -->
         <div class="border-2 border-dashed border-love rounded-lg p-4 mb-6">
           <h3 class="text-xl font-semibold text-love-dark mb-4">选择难度</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <button class="difficulty-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-love hover:text-white transition-colors" data-rows="3" data-cols="4">
+            <button class="difficulty-btn bg-love text-white py-2 px-4 rounded-lg shadow-md" data-rows="3" data-cols="4">
               简单 (3×4)
             </button>
-            <button class="difficulty-btn bg-love text-white py-2 px-4 rounded-lg shadow-md" data-rows="4" data-cols="4">
+            <button class="difficulty-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-love hover:text-white transition-colors" data-rows="4" data-cols="4">
               中等 (4×4)
             </button>
             <button class="difficulty-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-love hover:text-white transition-colors" data-rows="4" data-cols="5">
@@ -148,26 +171,9 @@
           </div>
         </div>
         
-        <!-- 图片上传区域 -->
-        <div class="border-2 border-dashed border-love rounded-lg p-4 mb-6">
-          <h3 class="text-xl font-semibold text-love-dark mb-4">上传你们的照片</h3>
-          <p class="text-gray-600 text-sm mb-4">上传2-10张图片，我们会用它们来创建拼图。</p>
-          
-          <div class="flex justify-center mb-4">
-            <label for="image-upload" class="bg-love text-white py-2 px-6 rounded-full cursor-pointer hover:bg-love-dark transition-colors">
-              <i class="fa fa-upload mr-2"></i> 选择图片
-            </label>
-            <input id="image-upload" type="file" accept="image/*" multiple class="hidden" />
-          </div>
-          
-          <div id="image-preview-container" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
-            <!-- 图片预览将在这里动态生成 -->
-          </div>
-        </div>
-        
         <div class="flex flex-col space-y-4">
           <button id="start-game-btn" class="bg-gradient-to-r from-love-dark to-love text-white py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
-            开始游戏 <i class="fa fa-heart ml-2"></i>
+            开始挑战 <i class="fa fa-heart ml-2"></i>
           </button>
           <button id="how-to-play-btn" class="bg-gray-200 text-gray-700 py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400">
             游戏规则 <i class="fa fa-question-circle ml-2"></i>
@@ -183,23 +189,27 @@
         <ul class="space-y-3 text-gray-700 mb-6">
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>游戏有两位玩家：玩家1（蓝色）和仪嫚（粉色）</span>
+            <span>游戏开始后，所有卡片会翻转显示一段时间</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>轮流翻牌，每次翻两张，找出相同的图片</span>
+            <span>你需要记住每张卡片的位置和内容</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>如果找到配对，玩家可以继续翻牌</span>
+            <span>卡片翻回后，按正确顺序点击它们</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>如果未找到配对，轮到另一位玩家</span>
+            <span>点击顺序正确的卡片会保持翻开状态</span>
           </li>
           <li class="flex items-start">
             <i class="fa fa-heart text-love mt-1 mr-3"></i>
-            <span>游戏结束时，配对最多的玩家获胜</span>
+            <span>如果点击错误，所有卡片会重新洗牌</span>
+          </li>
+          <li class="flex items-start">
+            <i class="fa fa-heart text-love mt-1 mr-3"></i>
+            <span>目标是用最少的尝试记住所有卡片位置</span>
           </li>
         </ul>
         <button id="close-rules-btn" class="w-full bg-gradient-to-r from-love-dark to-love text-white py-3 px-6 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
@@ -213,25 +223,25 @@
       <!-- 游戏信息 -->
       <div class="w-full max-w-5xl flex justify-between items-center mb-6 px-4">
         <div class="flex items-center">
-          <div id="player1-indicator" class="w-6 h-6 rounded-full bg-blue-500 mr-3"></div>
+          <div class="w-6 h-6 rounded-full bg-love mr-3 heart-beat"></div>
           <div>
-            <div class="font-bold">玩家1</div>
-            <div class="text-sm">配对: <span id="player1-score">0</span></div>
+            <div class="font-bold">小媳妇</div>
+            <div class="text-sm">尝试次数: <span id="attempts">0</span></div>
           </div>
         </div>
         
         <div class="text-center">
-          <div class="text-lg font-bold" id="current-turn">玩家1回合</div>
-          <div class="text-sm" id="turn-counter">第 1 回合</div>
-          <div class="text-xs text-gray-500 mt-1" id="difficulty-display">难度: 中等 (4×4)</div>
+          <div class="text-lg font-bold" id="game-status">记忆阶段</div>
+          <div class="text-sm" id="timer">00:00</div>
+          <div class="text-xs text-gray-500 mt-1" id="difficulty-display">难度: 简单 (3×4)</div>
         </div>
         
         <div class="flex items-center">
           <div>
-            <div class="font-bold text-right">仪嫚</div>
-            <div class="text-sm text-right">配对: <span id="player2-score">0</span></div>
+            <div class="font-bold text-right">进度</div>
+            <div class="text-sm text-right"><span id="progress">0</span>/<span id="total-cards">12</span></div>
           </div>
-          <div id="player2-indicator" class="w-6 h-6 rounded-full bg-love ml-3"></div>
+          <div class="w-6 h-6 rounded-full bg-love ml-3"></div>
         </div>
       </div>
       
@@ -254,19 +264,21 @@
     <!-- 游戏结束界面 -->
     <div id="game-over-screen" class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-40 hidden">
       <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center transform transition-all duration-500">
-        <h2 class="text-3xl font-bold text-love-dark mb-4">游戏结束！</h2>
-        <p class="text-lg mb-2">最终比分</p>
-        <div class="flex justify-center space-x-8 mb-6">
-          <div class="text-center">
-            <div class="font-bold text-blue-500">聂老公1</div>
-            <div class="text-2xl font-bold" id="final-player1-score">0</div>
+        <h2 class="text-3xl font-bold text-love-dark mb-4">挑战完成！</h2>
+        <p class="text-lg mb-2">嫚嫚的成绩</p>
+        <div class="grid grid-cols-2 gap-6 mb-6">
+          <div class="bg-love-light rounded-lg p-4">
+            <div class="font-bold text-love-dark">用时</div>
+            <div class="text-2xl font-bold" id="final-time">00:00</div>
           </div>
-          <div class="text-center">
-            <div class="font-bold text-love">嫚嫚妻</div>
-            <div class="text-2xl font-bold" id="final-player2-score">0</div>
+          <div class="bg-love-light rounded-lg p-4">
+            <div class="font-bold text-love-dark">尝试次数</div>
+            <div class="text-2xl font-bold" id="final-attempts">0</div>
           </div>
         </div>
-        <p class="text-xl font-bold mb-6" id="winner-message"></p>
+        <p class="text-xl font-bold mb-6 text-love-dark">
+          太棒啦,嫚总!你的记忆力太棒啦,爱你哦！
+        </p>
         <button id="play-again-btn" class="bg-gradient-to-r from-love-dark to-love text-white py-4 px-10 rounded-full text-xl font-semibold shadow-lg hover:shadow-xl transform transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-love-dark">
           再玩一次 <i class="fa fa-heart ml-2"></i>
         </button>
@@ -277,8 +289,9 @@
   <script>
     // 游戏配置
     const config = {
-      rows: 4,
+      rows: 3,
       cols: 4,
+      memoryTime: 10, // 记忆秒数
       // 默认示例图片，可替换为你们的照片
       defaultImages: [
         'https://picsum.photos/seed/couple1/200/200',
@@ -290,22 +303,35 @@
         'https://picsum.photos/seed/couple7/200/200',
         'https://picsum.photos/seed/couple8/200/200',
         'https://picsum.photos/seed/couple9/200/200',
-        'https://picsum.photos/seed/couple10/200/200'
+        'https://picsum.photos/seed/couple10/200/200',
+        'https://picsum.photos/seed/couple11/200/200',
+        'https://picsum.photos/seed/couple12/200/200',
+        'https://picsum.photos/seed/couple13/200/200',
+        'https://picsum.photos/seed/couple14/200/200',
+        'https://picsum.photos/seed/couple15/200/200',
+        'https://picsum.photos/seed/couple16/200/200',
+        'https://picsum.photos/seed/couple17/200/200',
+        'https://picsum.photos/seed/couple18/200/200',
+        'https://picsum.photos/seed/couple19/200/200',
+        'https://picsum.photos/seed/couple20/200/200'
       ],
       cardBack: 'https://picsum.photos/seed/cardback/200/200'
     };
     
     // 游戏状态
     const gameState = {
-      currentPlayer: 1,
-      turn: 1,
-      player1Score: 0,
-      player2Score: 0,
+      attempts: 0,
+      startTime: null,
+      timerInterval: null,
+      memoryInterval: null,
+      memoryTimeRemaining: config.memoryTime,
+      currentSequence: [],
+      correctSequence: [],
       flippedCards: [],
       matchedCards: [],
       gameOver: false,
       cards: [],
-      uploadedImages: []
+      gamePhase: 'memory' // 'memory' 或 'recall'
     };
     
     // DOM元素
@@ -320,18 +346,14 @@
     const quitGameBtn = document.getElementById('quit-game-btn');
     const playAgainBtn = document.getElementById('play-again-btn');
     const cardGrid = document.getElementById('card-grid');
-    const currentTurn = document.getElementById('current-turn');
-    const turnCounter = document.getElementById('turn-counter');
-    const player1Score = document.getElementById('player1-score');
-    const player2Score = document.getElementById('player2-score');
-    const finalPlayer1Score = document.getElementById('final-player1-score');
-    const finalPlayer2Score = document.getElementById('final-player2-score');
-    const winnerMessage = document.getElementById('winner-message');
-    const player1Indicator = document.getElementById('player1-indicator');
-    const player2Indicator = document.getElementById('player2-indicator');
+    const gameStatus = document.getElementById('game-status');
+    const timer = document.getElementById('timer');
+    const attempts = document.getElementById('attempts');
+    const progress = document.getElementById('progress');
+    const totalCards = document.getElementById('total-cards');
+    const finalTime = document.getElementById('final-time');
+    const finalAttempts = document.getElementById('final-attempts');
     const heartBgContainer = document.getElementById('heart-bg-container');
-    const imageUpload = document.getElementById('image-upload');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const difficultyDisplay = document.getElementById('difficulty-display');
     
@@ -343,7 +365,6 @@
       restartGameBtn.addEventListener('click', restartGame);
       quitGameBtn.addEventListener('click', quitGame);
       playAgainBtn.addEventListener('click', playAgain);
-      imageUpload.addEventListener('change', handleImageUpload);
       
       // 难度选择
       difficultyBtns.forEach(btn => {
@@ -361,57 +382,17 @@
           // 更新配置
           config.rows = parseInt(btn.dataset.rows);
           config.cols = parseInt(btn.dataset.cols);
+          
+          // 根据难度调整记忆时间
+          if (config.rows === 3 && config.cols === 4) {
+            config.memoryTime = 10;
+          } else if (config.rows === 4 && config.cols === 4) {
+            config.memoryTime = 15;
+          } else if (config.rows === 4 && config.cols === 5) {
+            config.memoryTime = 20;
+          }
         });
       });
-    }
-    
-    // 处理图片上传
-    function handleImageUpload(e) {
-      const files = e.target.files;
-      if (!files.length) return;
-      
-      // 清空现有预览
-      imagePreviewContainer.innerHTML = '';
-      gameState.uploadedImages = [];
-      
-      // 处理每个文件
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!file.type.startsWith('image/')) continue;
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          // 添加到上传的图片数组
-          gameState.uploadedImages.push(e.target.result);
-          
-          // 创建预览元素
-          const preview = document.createElement('div');
-          preview.className = 'relative';
-          
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.className = 'w-full h-16 object-cover rounded-md';
-          
-          const removeBtn = document.createElement('button');
-          removeBtn.innerHTML = '<i class="fa fa-times-circle"></i>';
-          removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity';
-          removeBtn.onclick = function() {
-            // 从DOM中移除
-            preview.remove();
-            // 从数组中移除
-            const index = gameState.uploadedImages.indexOf(e.target.result);
-            if (index !== -1) {
-              gameState.uploadedImages.splice(index, 1);
-            }
-          };
-          
-          preview.appendChild(img);
-          preview.appendChild(removeBtn);
-          imagePreviewContainer.appendChild(preview);
-        };
-        
-        reader.readAsDataURL(file);
-      }
     }
     
     // 显示规则
@@ -441,25 +422,32 @@
       difficultyDisplay.textContent = `难度: ${difficultyText}`;
       
       // 初始化游戏状态
-      gameState.currentPlayer = 1;
-      gameState.turn = 1;
-      gameState.player1Score = 0;
-      gameState.player2Score = 0;
+      gameState.attempts = 0;
+      gameState.startTime = new Date();
+      gameState.timerInterval = setInterval(updateTimer, 1000);
+      gameState.memoryTimeRemaining = config.memoryTime;
+      gameState.currentSequence = [];
+      gameState.correctSequence = [];
       gameState.flippedCards = [];
       gameState.matchedCards = [];
       gameState.gameOver = false;
+      gameState.gamePhase = 'memory';
       
       // 更新UI
-      updateTurnIndicator();
-      player1Score.textContent = gameState.player1Score;
-      player2Score.textContent = gameState.player2Score;
-      turnCounter.textContent = `第 ${gameState.turn} 回合`;
+      attempts.textContent = gameState.attempts;
+      progress.textContent = gameState.matchedCards.length;
+      totalCards.textContent = config.rows * config.cols;
+      gameStatus.textContent = `记忆阶段 (${gameState.memoryTimeRemaining}秒)`;
+      timer.textContent = '00:00';
       
       // 创建卡片
       createCards();
       
       // 开始背景爱心动画
       startHeartBackground();
+      
+      // 开始记忆倒计时
+      gameState.memoryInterval = setInterval(updateMemoryTimer, 1000);
     }
     
     // 创建卡片
@@ -469,35 +457,12 @@
       
       // 计算需要的图片数量
       const totalCards = config.rows * config.cols;
-      const uniqueImagesNeeded = Math.floor(totalCards / 2);
       
       // 准备卡片数据
-      let images = [];
-      
-      // 如果有上传的图片，优先使用
-      if (gameState.uploadedImages.length > 0) {
-        // 混洗上传的图片
-        const shuffledUploads = [...gameState.uploadedImages];
-        shuffleArray(shuffledUploads);
-        
-        // 使用上传的图片，如果不够则用默认图片补足
-        images = shuffledUploads.slice(0, uniqueImagesNeeded);
-        
-        // 如果上传的图片不够，用默认图片补足
-        if (images.length < uniqueImagesNeeded) {
-          const remaining = uniqueImagesNeeded - images.length;
-          images = [...images, ...config.defaultImages.slice(0, remaining)];
-        }
-      } else {
-        // 没有上传图片，使用默认图片
-        images = config.defaultImages.slice(0, uniqueImagesNeeded);
-      }
-      
-      // 复制图片形成配对
-      const pairedImages = [...images, ...images];
+      const images = config.defaultImages.slice(0, totalCards);
       
       // 打乱顺序
-      shuffleArray(pairedImages);
+      shuffleArray(images);
       
       // 设置网格列数
       cardGrid.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
@@ -505,9 +470,10 @@
       // 创建卡片元素
       for (let i = 0; i < totalCards; i++) {
         const card = document.createElement('div');
-        card.className = 'card-flip cursor-pointer';
+        card.className = 'card-flip cursor-pointer memory-active';
         card.dataset.index = i;
-        card.dataset.image = pairedImages[i];
+        card.dataset.image = images[i];
+        card.dataset.order = i; // 记录正确顺序
         
         // 卡片正面
         const cardFront = document.createElement('div');
@@ -517,7 +483,7 @@
         // 卡片背面（图片）
         const cardBack = document.createElement('div');
         cardBack.className = 'card-back absolute inset-0 bg-white rounded-lg shadow-md flex items-center justify-center';
-        cardBack.innerHTML = `<img src="${pairedImages[i]}" alt="卡片正面" class="w-full h-full object-cover rounded-lg">`;
+        cardBack.innerHTML = `<img src="${images[i]}" alt="卡片正面" class="w-full h-full object-cover rounded-lg">`;
         
         // 添加卡片到网格
         card.appendChild(cardFront);
@@ -525,137 +491,140 @@
         cardGrid.appendChild(card);
         
         // 添加点击事件
-        card.addEventListener('click', () => flipCard(card));
+        card.addEventListener('click', () => clickCard(card));
+        
+        // 初始状态为翻开（记忆阶段）
+        card.classList.add('card-flipped');
       }
       
       // 保存卡片引用
       gameState.cards = document.querySelectorAll('.card-flip');
+      
+      // 记录正确顺序
+      gameState.correctSequence = Array.from({length: totalCards}, (_, i) => i);
     }
     
-    // 翻牌
-    function flipCard(card) {
-      // 如果游戏结束、卡片已匹配或已翻开，则忽略点击
+    // 点击卡片
+    function clickCard(card) {
+      // 如果游戏结束、不在回忆阶段、卡片已匹配，则忽略点击
       if (gameState.gameOver || 
-          gameState.matchedCards.includes(card) || 
-          gameState.flippedCards.includes(card)) {
+          gameState.gamePhase !== 'recall' || 
+          gameState.matchedCards.includes(card)) {
         return;
       }
       
       // 翻转卡片
       card.classList.add('card-flipped');
-      gameState.flippedCards.push(card);
+      gameState.currentSequence.push(parseInt(card.dataset.order));
       
-      // 检查是否翻了两张卡片
-      if (gameState.flippedCards.length === 2) {
-        setTimeout(checkMatch, 1000);
-      }
+      // 检查是否点击正确
+      checkSequence();
     }
     
-    // 检查匹配
-    function checkMatch() {
-      const [card1, card2] = gameState.flippedCards;
+    // 检查点击顺序
+    function checkSequence() {
+      const currentIndex = gameState.currentSequence.length - 1;
       
-      // 如果两张卡片图片相同，则匹配成功
-      if (card1.dataset.image === card2.dataset.image) {
-        // 标记为已匹配
-        gameState.matchedCards.push(card1, card2);
+      // 如果当前点击顺序正确
+      if (gameState.currentSequence[currentIndex] === gameState.correctSequence[currentIndex]) {
+        // 添加成功动画
+        gameState.cards[gameState.currentSequence[currentIndex]].classList.add('success');
         
-        // 添加匹配成功动画
-        card1.classList.add('celebration');
-        card2.classList.add('celebration');
+        // 记录为已匹配
+        gameState.matchedCards.push(gameState.cards[gameState.currentSequence[currentIndex]]);
         
-        // 增加当前玩家分数
-        if (gameState.currentPlayer === 1) {
-          gameState.player1Score++;
-          player1Score.textContent = gameState.player1Score;
-        } else {
-          gameState.player2Score++;
-          player2Score.textContent = gameState.player2Score;
-        }
+        // 更新进度
+        progress.textContent = gameState.matchedCards.length;
         
         // 检查游戏是否结束
         if (gameState.matchedCards.length === gameState.cards.length) {
           setTimeout(endGame, 1000);
           return;
         }
-        
-        // 玩家继续回合
-        gameState.flippedCards = [];
       } else {
-        // 不匹配，翻回
+        // 点击顺序错误
+        gameState.cards.forEach(card => {
+          // 错误动画
+          if (!gameState.matchedCards.includes(card)) {
+            card.classList.add('error');
+          }
+        });
+        
+        // 增加尝试次数
+        gameState.attempts++;
+        attempts.textContent = gameState.attempts;
+        
+        // 延迟后重置卡片
         setTimeout(() => {
-          card1.classList.remove('card-flipped');
-          card2.classList.remove('card-flipped');
-          gameState.flippedCards = [];
+          gameState.cards.forEach(card => {
+            if (!gameState.matchedCards.includes(card)) {
+              card.classList.remove('card-flipped', 'error');
+            }
+          });
           
-          // 切换玩家
-          gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
-          gameState.turn++;
-          updateTurnIndicator();
-        }, 500);
+          // 重置当前序列
+          gameState.currentSequence = [];
+        }, 1000);
       }
     }
     
-    // 更新回合指示器
-    function updateTurnIndicator() {
-      currentTurn.textContent = `玩家${gameState.currentPlayer === 1 ? '1' : '嫚总'}回合`;
-      turnCounter.textContent = `第 ${gameState.turn} 回合`;
+    // 更新记忆计时器
+    function updateMemoryTimer() {
+      gameState.memoryTimeRemaining--;
+      gameStatus.textContent = `记忆阶段 (${gameState.memoryTimeRemaining}秒)`;
       
-      // 更新玩家指示器样式
-      if (gameState.currentPlayer === 1) {
-        player1Indicator.classList.add('heart-beat');
-        player2Indicator.classList.remove('heart-beat');
-      } else {
-        player2Indicator.classList.add('heart-beat');
-        player1Indicator.classList.remove('heart-beat');
+      if (gameState.memoryTimeRemaining <= 0) {
+        clearInterval(gameState.memoryInterval);
+        
+        // 切换到回忆阶段
+        gameState.gamePhase = 'recall';
+        gameStatus.textContent = '回忆阶段';
+        
+        // 翻转所有卡片
+        gameState.cards.forEach(card => {
+          card.classList.remove('memory-active');
+          card.classList.remove('card-flipped');
+        });
       }
+    }
+    
+    // 更新计时器
+    function updateTimer() {
+      const now = new Date();
+      const elapsed = Math.floor((now - gameState.startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      timer.textContent = `${minutes}:${seconds}`;
     }
     
     // 结束游戏
     function endGame() {
       gameState.gameOver = true;
+      clearInterval(gameState.timerInterval);
       
       // 显示游戏结束界面
-      finalPlayer1Score.textContent = gameState.player1Score;
-      finalPlayer2Score.textContent = gameState.player2Score;
-      
-      // 确定获胜者
-      if (gameState.player1Score > gameState.player2Score) {
-        winnerMessage.textContent = '🎉 聂老公获胜！🎉';
-      } else if (gameState.player2Score > gameState.player1Score) {
-        winnerMessage.textContent = `🎉 小宝贝仪嫚获胜！🎉`;
-      } else {
-        winnerMessage.textContent = '平局呀！你们真是心有灵犀~';
-      }
+      finalTime.textContent = timer.textContent;
+      finalAttempts.textContent = gameState.attempts;
       
       gameOverScreen.classList.remove('hidden');
     }
     
     // 重新开始游戏
     function restartGame() {
-      // 重置卡片状态
-      gameState.cards.forEach(card => {
-        card.classList.remove('card-flipped', 'celebration');
-      });
+      // 清除计时器
+      clearInterval(gameState.timerInterval);
+      clearInterval(gameState.memoryInterval);
       
       // 重新开始
-      gameState.currentPlayer = 1;
-      gameState.turn = 1;
-      gameState.flippedCards = [];
-      gameState.matchedCards = [];
-      gameState.gameOver = false;
-      
-      // 更新UI
-      updateTurnIndicator();
-      player1Score.textContent = gameState.player1Score;
-      player2Score.textContent = gameState.player2Score;
-      
-      // 重新洗牌
-      createCards();
+      startGame();
     }
     
     // 退出游戏
     function quitGame() {
+      // 清除计时器
+      clearInterval(gameState.timerInterval);
+      clearInterval(gameState.memoryInterval);
+      
       gameScreen.classList.add('hidden');
       welcomeScreen.classList.remove('hidden');
       
