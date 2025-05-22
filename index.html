@@ -168,15 +168,9 @@
     }
     
     /* 玩家角色 */
-    #player {
-      background-image: none !important;
-    }
-    
     .player-sprite {
       width: 100%;
       height: 100%;
-      background-image: url('https://picsum.photos/seed/player/60/80');
-      background-size: cover;
       position: relative;
     }
     
@@ -601,6 +595,21 @@
       
       // 检查碰撞
       checkCollisions();
+      
+      // 更新昵称位置
+      updateNicknamePosition();
+    }
+    
+    // 更新昵称位置
+    function updateNicknamePosition() {
+      const playerRect = gameState.player.getBoundingClientRect();
+      const canvasRect = gameState.canvas.getBoundingClientRect();
+      
+      const left = playerRect.left - canvasRect.left + gameState.player.offsetWidth / 2;
+      const bottom = playerRect.bottom - canvasRect.bottom + 40; // 调整垂直位置
+      
+      playerName.style.left = `${left}px`;
+      playerName.style.bottom = `${bottom}px`;
     }
     
     // 渲染游戏
@@ -798,136 +807,4 @@
       } else if (event.code === 'ArrowDown') {
         slide();
       } else if (event.code === 'KeyP') {
-        pauseGame();
-      }
-    }
-    
-    // 游戏结束
-    function gameOver() {
-      gameState.gameOver = true;
-      cancelAnimationFrame(gameState.animationId);
-      
-      // 更新最高分
-      if (gameState.score > gameState.highScore) {
-        gameState.highScore = gameState.score;
-        localStorage.setItem(config.localStorageKey, gameState.highScore);
-      }
-      
-      // 更新UI
-      gameStatus.textContent = '游戏结束！';
-      finalScoreDisplay.textContent = gameState.score;
-      finalHighScoreDisplay.textContent = gameState.highScore;
-      
-      // 显示游戏结束界面
-      setTimeout(() => {
-        gameOverScreen.classList.remove('hidden');
-      }, 1000);
-    }
-    
-    // 暂停游戏
-    function pauseGame() {
-      if (gameState.gameOver) return;
-      
-      gameState.paused = true;
-      cancelAnimationFrame(gameState.animationId);
-      pauseScreen.classList.remove('hidden');
-    }
-    
-    // 继续游戏
-    function resumeGame() {
-      gameState.paused = false;
-      pauseScreen.classList.add('hidden');
-      gameState.lastTimestamp = performance.now();
-      gameLoop(gameState.lastTimestamp);
-    }
-    
-    // 重新开始游戏
-    function restartGame() {
-      pauseScreen.classList.add('hidden');
-      showNicknameScreen();
-    }
-    
-    // 退出游戏
-    function quitGame() {
-      gameState.paused = true;
-      cancelAnimationFrame(gameState.animationId);
-      gameScreen.classList.add('hidden');
-      welcomeScreen.classList.remove('hidden');
-      
-      // 停止背景爱心动画
-      stopHeartBackground();
-    }
-    
-    // 再玩一次
-    function playAgain() {
-      gameOverScreen.classList.add('hidden');
-      showNicknameScreen();
-    }
-    
-    // 创建背景爱心
-    function createHeart() {
-      const heart = document.createElement('div');
-      heart.className = 'heart-bg';
-      
-      // 随机位置和大小
-      const x = Math.random() * window.innerWidth;
-      const size = 10 + Math.random() * 30;
-      
-      heart.style.left = `${x}px`;
-      heart.style.width = `${size}px`;
-      heart.style.height = `${size}px`;
-      
-      // 随机颜色
-      const hue = 340 + Math.random() * 40; // 粉色系
-      const lightness = 50 + Math.random() * 30; // 50-80%
-      heart.style.backgroundColor = `hsl(${hue}, 100%, ${lightness}%)`;
-      
-      // 随机动画延迟
-      heart.style.animationDelay = `${Math.random() * 10}s`;
-      
-      // 设置伪元素颜色
-      const style = document.createElement('style');
-      style.textContent = `
-        .heart-bg:before, .heart-bg:after {
-          background-color: hsl(${hue}, 100%, ${lightness}%);
-        }
-      `;
-      heart.appendChild(style);
-      
-      // 添加到容器
-      heartBgContainer.appendChild(heart);
-      
-      // 动画结束后移除
-      setTimeout(() => {
-        if (heart.parentNode === heartBgContainer) {
-          heartBgContainer.removeChild(heart);
-        }
-      }, 8000);
-    }
-    
-    // 开始背景爱心动画
-    let heartInterval;
-    function startHeartBackground() {
-      // 先清空现有爱心
-      heartBgContainer.innerHTML = '';
-      
-      // 每隔一段时间创建新爱心
-      heartInterval = setInterval(createHeart, 300);
-      
-      // 初始创建一些爱心
-      for (let i = 0; i < 10; i++) {
-        setTimeout(createHeart, i * 100);
-      }
-    }
-    
-    // 停止背景爱心动画
-    function stopHeartBackground() {
-      clearInterval(heartInterval);
-      heartBgContainer.innerHTML = '';
-    }
-    
-    // 初始化游戏
-    initEventListeners();
-  </script>
-</body>
-</html>
+        pause
